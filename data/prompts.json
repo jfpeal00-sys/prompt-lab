@@ -1,5 +1,15 @@
 [
   {
+    "id": "p_1785454058094",
+    "type": "images",
+    "category": "Clothing",
+    "title": "CHANGE CLOTHING - CGI/ANIME → REAL CLOTHING ONLY",
+    "desc": "REAL CLOTHING ONLY",
+    "prompt": "CHANGE CLOTHING - CGI/ANIME → REAL CLOTHING ONLY\n\nIMAGE ASSIGNMENT\n\nImage 1 (Primary Image): The image to be edited. [Briefly describe the content of Image 1.]\n\nImage 2 (Reference Image): A fictional CGI, anime, or digitally illustrated character. This image must be used exclusively as the design reference for the clothing. [Briefly describe the content of Image 2.]\n\nREALISTIC WARDROBE RECREATION ONLY\n\nModify only Image 1.\n\nImage 2 is not a real photograph. It is a fictional CGI, anime, or digitally illustrated reference. Do not copy its rendering style, textures, lighting, proportions, or artistic appearance.\n\nInstead, faithfully recreate the clothing shown in Image 2 as if it were real clothing photographed in real life.\n\nPreserve the original design as accurately as possible, including the overall appearance, colors, patterns, stitching, trims, decorative elements, silhouettes, proportions, and materials, while translating every element into a completely realistic, physically plausible garment.\n\nReplace the entire outfit in Image 1 with this realistic recreation.\n\nDo not transfer, copy, replace, or modify any accessories. Jewelry, necklaces, earrings, bracelets, rings, watches, belts, gloves, hats, scarves, handbags, hair accessories, eyewear, or any other wearable accessories must remain exactly as they appear in Image 1.\n\nThe recreated clothing must fit naturally to the model's body, pose, proportions, perspective, and lighting in Image 1. All fabrics must exhibit realistic behavior, including accurate folds, wrinkles, seams, stitching, thickness, gravity, stretching, compression, texture, and material properties. The final result must appear as though the clothing was professionally photographed on the model in Image 1.\n\nABSOLUTE PRIORITY: Preserve the model's identity exactly as it appears in Image 1. Under no circumstances modify the face, facial expression, gaze, hairstyle, hair color, makeup, skin tone, anatomy, body proportions, pose, body position, hands, fingers, accessories, background, lighting, shadows, reflections, perspective, framing, image format, color grading, sharpness, depth of field, or overall photographic quality.\n\nDo not copy any facial features, body features, skin, hair, pose, accessories, or background from Image 2. Use Image 2 exclusively as a design reference for recreating the clothing.\n\nThe only permitted modification is replacing the clothing in Image 1 with a realistic recreation of the fictional design shown in Image 2. All accessories must remain exactly as they appear in Image 1.",
+    "images": [],
+    "videos": []
+  },
+  {
     "id": "p_1785453996444",
     "type": "images",
     "category": "Clothing",
