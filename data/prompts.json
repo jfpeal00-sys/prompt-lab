@@ -1,5 +1,15 @@
 [
   {
+    "id": "p_1785452802042",
+    "type": "click",
+    "category": "Format",
+    "title": "FORMAT CHANGE ONLY – EXPAND TO 4:3",
+    "desc": "EXPAND TO 4:3",
+    "prompt": "FORMAT CHANGE ONLY – EXPAND TO 4:3\n\nModify only the image format to a 4:3 aspect ratio with a final resolution of 1440 × 1080 pixels.\n\nThe existing composition is locked and must remain exactly as it appears in the original image. Do not zoom out, zoom in, reposition the virtual camera, change the framing, or alter the apparent distance between the camera and the model.\n\nThe model must retain exactly the same size, scale, position, and composition as in the original image. Do not make the subject appear smaller, larger, closer, or farther away.\n\nTreat the original image as a finished photograph placed on a larger canvas. Do not modify, resize, move, regenerate, reinterpret, or replace any existing content within the original image boundaries.\n\nDo not recreate the photograph to match the new aspect ratio. Instead, enlarge the canvas to the requested 4:3 format while keeping the original photograph completely unchanged.\n\nImagine that the original photograph has already been placed on the center of a larger blank canvas. Your task is only to generate new image content outside the original photograph in order to fill the additional canvas area.\n\nDo not crop the image unless it is absolutely necessary. Whenever possible, perform intelligent generative outpainting only outside the original image boundaries.\n\nAll newly generated areas must preserve perfect continuity of the existing background, lighting, perspective, shadows, depth of field, color grading, and every other photographic characteristic. The expanded areas must blend seamlessly with the original photograph.\n\nABSOLUTE PRIORITY: Preserve the model's identity exactly as it appears in the original image. Under no circumstances modify the face, facial expression, gaze, hairstyle, hair color, makeup, skin tone, anatomy, body proportions, pose, clothing, accessories, body position, background, lighting, shadows, perspective, color grading, sharpness, or photographic quality.\n\nThe original photograph must appear unchanged inside the final image. Only the newly added canvas areas may contain AI-generated content.\n\nThe only permitted modification is expanding the canvas to a 4:3 aspect ratio at 1440 × 1080 pixels while preserving the original composition exactly.",
+    "images": [],
+    "videos": []
+  },
+  {
     "id": "p_1785452779323",
     "type": "click",
     "category": "Format",
