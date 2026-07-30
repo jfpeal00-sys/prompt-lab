@@ -1,5 +1,15 @@
 [
   {
+    "id": "p_1785453279564",
+    "type": "images",
+    "category": "Framing",
+    "title": "FORMAT CHANGE ONLY – EXPAND TO 3:4",
+    "desc": "EXPAND TO 3:4",
+    "prompt": "FORMAT CHANGE ONLY – EXPAND TO 3:4\n\nModify only the image format to a 3:4 aspect ratio with a final resolution of 1080 × 1440 pixels.\n\nThe existing composition is locked and must remain exactly as it appears in the original image. Do not zoom out, zoom in, reposition the virtual camera, change the framing, or alter the apparent distance between the camera and the model.\n\nThe model must retain exactly the same size, scale, position, and composition as in the original image. Do not make the subject appear smaller, larger, closer, or farther away.\n\nTreat the original image as a finished photograph placed on a larger canvas. Do not modify, resize, move, regenerate, reinterpret, or replace any existing content within the original image boundaries.\n\nDo not recreate the photograph to match the new aspect ratio. Instead, enlarge the canvas to the requested 3:4 format while keeping the original photograph completely unchanged.\n\nImagine that the original photograph has already been aligned with the bottom edge of a larger 3:4 canvas. The bottom edge of the original photograph must remain fixed in the final image. Do not move the original photograph vertically.\n\nWhenever additional image height is required, expand the canvas upward only. Generate new image content above the original photograph. Do not generate additional body, legs, clothing, or other subject content below the original image unless absolutely necessary to preserve continuity.\n\nDo not crop the image unless it is absolutely necessary. Whenever possible, perform intelligent generative outpainting only outside the original image boundaries.\n\nAll newly generated areas must preserve perfect continuity of the existing background, lighting, perspective, shadows, depth of field, color grading, and every other photographic characteristic. The expanded areas must blend seamlessly with the original photograph.\n\nABSOLUTE PRIORITY: Preserve the model's identity exactly as it appears in the original image. Under no circumstances modify the face, facial expression, gaze, hairstyle, hair color, makeup, skin tone, anatomy, body proportions, pose, clothing, accessories, body position, background, lighting, shadows, perspective, color grading, sharpness, or photographic quality.\n\nThe original photograph must appear unchanged inside the final image. Only the newly added canvas areas may contain AI-generated content.\n\nThe only permitted modification is expanding the canvas to a 3:4 aspect ratio at 1080 × 1440 pixels while preserving the original composition exactly.",
+    "images": [],
+    "videos": []
+  },
+  {
     "id": "p_1785453188702",
     "type": "images",
     "category": "Framing",
