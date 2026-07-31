@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    background:#fff;
+    color:#0B0B0C;
+    font-family:'Inter', sans-serif;
+    max-width:600px;
+    margin:0 auto;
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* ================= SPLASH ================= */
+  #splash{
+    position:fixed; inset:0;
+    max-width:600px; margin:0 auto;
+    background:#fff;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    z-index:100;
+  }
+  #splash .splash-icon{
+    width:30vw; max-width:170px; min-width:96px;
+    height:30vw; max-height:170px; min-height:96px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #splash .splash-icon svg{ width:100%; height:100%; }
+  #splash .splash-word{
+    margin-top:22px;
+    font-family:'Sora', sans-serif;
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:-0.01em;
+  }
+  #accessBtn{
+    position:absolute;
+    left:20px; right:20px; bottom:36px;
+    background:#0B0B0C;
+    color:#fff;
+    border:none;
+    border-radius:20px;
+    padding:18px 0;
+    font-family:'Inter', sans-serif;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  #accessBtn:active{ opacity:0.85; }
+
+  /* ================= APP SHELL ================= */
+  #app{ display:none; min-height:100vh; flex-direction:column; }
+  #app.show{ display:flex; }
+
+  .top-strip{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px 2px;
+  }
+  .top-strip .app-word{ font-family:'Sora',sans-serif; font-weight:800; font-size:15px; }
+  .settings-ico{ width:30px; height:30px; display:flex; align-items:center; justify-content:center; color:#0B0B0C; cursor:pointer; }
+  .settings-ico svg{ width:18px; height:18px; }
+
+  /* ---- category scroller ---- */
+  .cat-scroller{
+    display:flex; gap:8px;
+    overflow-x:auto;
+    padding:12px 14px 12px;
+    cursor:grab;
+    user-select:none;
+    scrollbar-width:none;
+  }
+  .cat-scroller::-webkit-scrollbar{ display:none; }
+  .cat-scroller.dragging{ cursor:grabbing; }
+  .cat-chip{
+    flex:0 0 auto;
+    display:flex; align-items:center; gap:6px;
+    padding:9px 14px;
+    border-radius:999px;
+    background:#f2f2f4;
+    color:#0B0B0C;
+    font-size:12.5px; font-weight:600;
+    white-space:nowrap;
+  }
+  .cat-chip svg{ width:15px; height:15px; flex:0 0 auto; }
+  .cat-chip.active{ background:#0B0B0C; color:#fff; }
+
+  /* ---- header (category summary) ---- */
+  .m9-header{ display:flex; gap:14px; padding:8px 16px 4px; }
+  .m9-art{
+    width:78px; height:78px; border-radius:14px;
+    background:#0B0B0C; color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 78px;
+  }
+  .m9-art svg{ width:32px; height:32px; }
+  .m9-meta{ min-width:0; padding-top:2px; }
+  .m9-meta .m9-eyebrow{ font-size:10.5px; color:#9a9aa3; margin-bottom:3px; }
+  .m9-meta h3{ font-family:'Sora',sans-serif; font-size:19px; font-weight:800; margin:0 0 3px; letter-spacing:-0.01em; text-transform:capitalize; }
+  .m9-meta .m9-sub{ font-size:12.5px; color:#54545c; }
+
+  /* ---- status banner ---- */
+  .status-banner{ display:none; margin:12px 16px 0; padding:12px 14px; border-radius:12px; font-size:13px; line-height:1.5; }
+  .status-banner.show{ display:block; }
+  .status-banner.info{ background:rgba(29,111,237,0.08); border:1px solid rgba(29,111,237,0.25); color:#1a4fb0; }
+  .status-banner.error{ background:rgba(244,33,46,0.08); border:1px solid rgba(244,33,46,0.25); color:#b21b23; }
+  .status-banner.loading{ background:#f7f7f9; border:1px solid #ececef; color:#68686f; }
+  .status-banner button{ background:none; border:1px solid currentColor; color:inherit; border-radius:8px; padding:5px 12px; font-size:12px; margin-top:8px; cursor:pointer; }
+
+  /* ---- list ---- */
+  .m9-list{ flex:1; padding:10px 16px 110px; }
+  .entry{ padding:13px 0; border-bottom:1px solid #ececef; }
+  .entry.open{ background:#fafafb; margin:0 -16px; padding:13px 16px; border-radius:12px; }
+  .entry-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .entry-title{ font-weight:700; font-size:14px; }
+  .entry-cat{ font-size:11.5px; color:#8a8a93; font-weight:400; }
+  .entry-cat::before{ content:"· "; }
+  .entry-desc{ font-size:12px; color:#68686f; margin:4px 0 0; }
+
+  .prompt-box{ position:relative; background:#f7f7f9; border:1px solid #ececef; border-radius:12px; padding:11px 32px 11px 11px; margin-top:10px; }
+  .prompt-box pre{ margin:0; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#26262b; white-space:pre-wrap; }
+  .copy-btn{ position:absolute; top:9px; right:9px; width:22px; height:22px; border-radius:6px; background:#fff; border:1px solid #e2e2e7; color:#0B0B0C; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .copy-btn svg{ width:13px; height:13px; }
+  .copy-toast{ position:absolute; top:10px; right:35px; font-size:9px; color:#0B0B0C; opacity:0; transition:opacity .2s; }
+  .copy-toast.show{ opacity:1; }
+
+  .media-toggle{ display:flex; align-items:center; gap:6px; font-size:11px; color:#0B0B0C; font-weight:700; margin-top:9px; cursor:pointer; user-select:none; }
+  .media-toggle .arrow{ color:#8a8a93; transition:transform .15s; font-size:10px; }
+  .media-toggle.open .arrow{ transform:rotate(90deg); }
+  .media-panel{ display:none; margin-top:9px; border-radius:14px; overflow:hidden; aspect-ratio:1; background:#111; }
+  .media-panel.open{ display:block; }
+  .media-panel img, .media-panel video{ width:100%; height:100%; object-fit:cover; }
+
+  .action-row{ display:flex; gap:18px; margin-top:10px; }
+  .action-item{ display:flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:#54545c; cursor:pointer; }
+  .action-item svg{ width:14px; height:14px; }
+  .action-item.delete:hover{ color:#d1232b; }
+  .action-item.edit:hover{ color:#0B0B0C; }
+
+  .empty-state{ padding:60px 20px; text-align:center; color:#9a9aa3; font-size:13px; line-height:1.5; }
+
+  /* ---- FAB ---- */
+  .fab{
+    position:fixed; right:calc(50% - 300px + 20px); bottom:88px;
+    width:56px; height:56px; border-radius:50%;
+    background:#0B0B0C; color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 18px rgba(0,0,0,0.25);
+    cursor:pointer; z-index:25;
+  }
+  .fab svg{ width:24px; height:24px; }
+  @media (max-width:640px){ .fab{ right:20px; } }
+
+  /* ---- bottom nav (2 icons) ---- */
+  .bottom-nav{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:600px;
+    background:rgba(255,255,255,0.94);
+    backdrop-filter:blur(6px);
+    border-top:1px solid #ececef;
+    display:grid; grid-template-columns:1fr 1fr;
+    z-index:20;
+  }
+  .nav-col{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:12px 0 14px; cursor:pointer; color:#b3b3ba; }
+  .nav-col svg{ width:23px; height:23px; }
+  .nav-col.active{ color:#0B0B0C; }
+  .nav-col .nav-label{ font-size:10.5px; font-weight:700; }
+
+  /* ================= MODALS (light theme) ================= */
+  .modal-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:50; align-items:flex-start; justify-content:center; overflow-y:auto; padding:0; }
+  .modal-overlay.open{ display:flex; }
+  .modal{ background:#fff; width:100%; max-width:600px; min-height:100vh; }
+  .modal-head{ position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(255,255,255,0.97); backdrop-filter:blur(6px); border-bottom:1px solid #ececef; }
+  .modal-head .close-btn{ width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:none; border:none; color:#0B0B0C; cursor:pointer; }
+  .modal-head .close-btn:hover{ background:#f2f2f4; }
+  .modal-head h2{ font-size:16px; margin:0; font-weight:700; }
+  .modal-head .save-btn{ background:#0B0B0C; color:#fff; border:none; border-radius:9999px; font-weight:700; font-size:14px; padding:8px 18px; cursor:pointer; }
+  .modal-head .save-btn:disabled{ opacity:0.4; cursor:default; }
+
+  .modal-body{ padding:18px 16px 60px; }
+  .m-field{ margin-bottom:18px; }
+  .m-field label{ display:block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#9a9aa3; margin-bottom:7px; }
+  .m-field input[type=text], .m-field textarea, .m-field select{
+    width:100%; background:#fff; border:1px solid #e2e2e7; border-radius:10px; color:#0B0B0C;
+    font-family:'Inter', sans-serif; font-size:14.5px; padding:11px 12px;
+  }
+  .m-field textarea{ resize:vertical; }
+  .m-field textarea.mono{ font-family:'IBM Plex Mono', monospace; font-size:13px; min-height:110px; }
+  .m-field input:focus, .m-field textarea:focus, .m-field select:focus{ outline:2px solid #0B0B0C; outline-offset:0; }
+
+  .type-pills{ display:flex; gap:10px; }
+  .type-pill{ flex:1; text-align:center; padding:11px; border:1px solid #e2e2e7; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px; color:#9a9aa3; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .type-pill svg{ width:17px; height:17px; }
+  .type-pill.selected{ border-color:#0B0B0C; color:#0B0B0C; background:#f2f2f4; }
+
+  .subcat-row{ display:flex; gap:10px; }
+  .subcat-row select{ flex:1; }
+  .subcat-row input{ flex:1; display:none; }
+  .subcat-row.custom input{ display:block; }
+  .subcat-row.custom select{ display:none; }
+
+  .upload-btn{ display:inline-flex; align-items:center; gap:8px; border:1px dashed #cfcfd6; border-radius:10px; padding:10px 14px; font-size:13.5px; font-weight:600; color:#0B0B0C; cursor:pointer; }
+  .upload-btn:hover{ background:#f7f7f9; }
+  .upload-btn svg{ width:16px; height:16px; }
+  .upload-btn input{ display:none; }
+
+  .attach-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(84px,1fr)); gap:8px; margin-top:12px; }
+  .attach-thumb{ position:relative; aspect-ratio:1; border-radius:10px; overflow:hidden; background:#f2f2f4; border:1px solid #ececef; }
+  .attach-thumb img, .attach-thumb video{ width:100%; height:100%; object-fit:cover; }
+  .attach-thumb .rm{ position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,0.75); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; }
+  .hint-text{ font-size:12px; color:#9a9aa3; margin-top:8px; line-height:1.5; }
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-icon">
+    <svg viewBox="0 0 24 24" fill="#0B0B0C"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z"/><path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"/><path d="M5 15l.7 1.8L7.5 17.5 5.7 18.2 5 20l-.7-1.8L2.5 17.5l1.8-.7L5 15z"/></svg>
+  </div>
+  <div class="splash-word">Prompt Lab</div>
+  <button id="accessBtn">Acceder</button>
+</div>
+
+<div id="app">
+  <div class="top-strip">
+    <span class="app-word">Prompt Lab</span>
+    <div class="settings-ico" id="settingsIco" title="GitHub connection">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </div>
+  </div>
+
+  <div class="cat-scroller" id="catScroller"></div>
+
+  <div class="m9-header">
+    <div class="m9-art" id="headerArt"></div>
+    <div class="m9-meta">
+      <div class="m9-eyebrow" id="headerEyebrow"></div>
+      <h3 id="headerTitle">All</h3>
+      <div class="m9-sub">Prompt Lab</div>
+    </div>
+  </div>
+
+  <div class="status-banner" id="statusBanner"></div>
+
+  <div class="m9-list" id="promptList"></div>
+
+  <div class="fab" id="fabBtn" title="New prompt">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-col active" data-section="images">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      <span class="nav-label">Images</span>
+    </div>
+    <div class="nav-col" data-section="videos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 10l5-3v10l-5-3"/></svg>
+      <span class="nav-label">Videos</span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settingsOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="close-btn" id="settingsClose">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <h2>GitHub connection</h2>
+      <button class="save-btn" id="settingsSave">Save</button>
+    </div>
+    <div class="modal-body">
+      <div class="m-field">
+        <label for="ghOwner">GitHub username</label>
+        <input type="text" id="ghOwner" placeholder="e.g.: jfpeal00-sys">
+      </div>
+      <div class="m-field">
+        <label for="ghRepo">Repository</label>
+        <input type="text" id="ghRepo" placeholder="e.g.: prompt-lab">
+      </div>
+      <div class="m-field">
+        <label for="ghToken">Access token (fine-grained, Contents: Read and write permission)</label>
+        <input type="text" id="ghToken" placeholder="github_pat_...">
+      </div>
+      <div class="hint-text" id="ghStatusMsg">The token is stored only in this browser (localStorage) and is never uploaded to the repository. You'll need to enter it again on each device where you use the app.</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="close-btn" id="modalClose">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <h2 id="modalTitleText">New prompt</h2>
+      <button class="save-btn" id="modalSave">Save</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="m-field">
+        <label>Type</label>
+        <div class="type-pills">
+          <div class="type-pill selected" data-type="images">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            Image
+          </div>
+          <div class="type-pill" data-type="videos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 10l5-3v10l-5-3"/></svg>
+            Video
+          </div>
+        </div>
+      </div>
+
+      <div class="m-field">
+        <label for="mTitle">Prompt title</label>
+        <input type="text" id="mTitle" placeholder="E.g.: Editorial portrait, white studio">
+      </div>
+
+      <div class="m-field">
+        <label for="mDesc">Short description</label>
+        <textarea id="mDesc" rows="2" placeholder="What is this prompt used for?"></textarea>
+      </div>
+
+      <div class="m-field">
+        <label for="mSubcat">Subcategory</label>
+        <div class="subcat-row" id="subcatRow">
+          <select id="mSubcatSelect"></select>
+          <input type="text" id="mSubcatCustom" placeholder="Type the subcategory">
+        </div>
+      </div>
+
+      <div class="m-field">
+        <label for="mPrompt">Prompt</label>
+        <textarea id="mPrompt" class="mono" placeholder="Paste the full prompt here…"></textarea>
+      </div>
+
+      <div class="m-field">
+        <label>Attach image(s)</label>
+        <label class="upload-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Choose images
+          <input type="file" id="mImages" accept="image/*" multiple>
+        </label>
+        <div class="attach-grid" id="imgAttachGrid"></div>
+      </div>
+
+      <div class="m-field">
+        <label>Attach video(s)</label>
+        <label class="upload-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Choose videos
+          <input type="file" id="mVideos" accept="video/*" multiple>
+        </label>
+        <div class="attach-grid" id="vidAttachGrid"></div>
+        <div class="hint-text">When you save, each file is uploaded directly to the <code>media/images/</code> or <code>media/videos/</code> folder of your GitHub repository, and the prompt is recorded in <code>data/prompts.json</code>. Available immediately on any device.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = { images: [], videos: [] };
+
+/* ---- category icons: known categories + a generic fallback for future ones ---- */
+const CAT_ICONS = {
+  all: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',
+  background: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20l6-9 4 5 3-4 5 8z"/><circle cx="7" cy="7" r="2"/></svg>',
+  clothing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4L4 7l3 3 2-1v11h6V9l2 1 3-3-3-3-3 2H10L7 4z"/></svg>',
+  framing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V4h4M17 4h4v4M21 16v4h-4M7 20H3v-4"/></svg>',
+  formats: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 14h10M14 4v10"/></svg>',
+  format: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 14h10M14 4v10"/></svg>',
+  pose: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="3"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>',
+  lighting: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>',
+  movement: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h13M13 6l6 6-6 6"/></svg>',
+  transition: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+  other: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z"/></svg>'
+};
+// Fallback icon for any category not yet mapped above (so adding new categories never breaks the UI)
+const CAT_ICON_FALLBACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 12.6L12 21.2 2.8 12 2.8 2.8 12 2.8z"/><circle cx="7" cy="7.5" r="1.2" fill="currentColor" stroke="none"/></svg>';
+function catIcon(cat){ return CAT_ICONS[(cat||'').toLowerCase()] || CAT_ICON_FALLBACK; }
+
+let activeSection = 'images';
+let activeCategory = 'all';
+const expanded = new Set();
+
+function copySvg(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+}
+function editSvg(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>';
+}
+function trashSvg(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg>';
+}
+
+function renderCategoryBar(){
+  const scroller = document.getElementById('catScroller');
+  const cats = ['all', ...new Set(DATA[activeSection].map(i=>i.category))];
+  scroller.innerHTML = cats.map(c=>{
+    const label = c==='all' ? 'All' : c;
+    return `<div class="cat-chip ${activeCategory===c ? 'active':''}" data-cat="${c}">${catIcon(c)}<span>${label}</span></div>`;
+  }).join('');
+  scroller.querySelectorAll('.cat-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      activeCategory = chip.dataset.cat;
+      renderCategoryBar();
+      renderHeader();
+      renderList();
+    });
+  });
+}
+
+function renderHeader(){
+  const items = DATA[activeSection];
+  const filtered = activeCategory==='all' ? items : items.filter(i=>i.category===activeCategory);
+  document.getElementById('headerArt').innerHTML = catIcon(activeCategory);
+  document.getElementById('headerTitle').textContent = activeCategory==='all' ? 'All' : activeCategory;
+  const label = activeCategory==='all' ? 'Library' : 'Category';
+  document.getElementById('headerEyebrow').textContent = `${label} · ${filtered.length} prompt${filtered.length===1?'':'s'}`;
+}
+
+function renderList(){
+  const wrap = document.getElementById('promptList');
+  const items = DATA[activeSection].filter(i => activeCategory==='all' || i.category===activeCategory);
+
+  if(items.length === 0){
+    wrap.innerHTML = `<div class="empty-state">${gh.configured ? 'No prompts in this category yet. Use the "+" button to create one.' : 'Set up your GitHub connection (⚙ icon top right) to load and save your prompts.'}</div>`;
+    return;
+  }
+
+  wrap.innerHTML = items.map(item=>{
+    const isOpen = expanded.has(item.id);
+    let mediaInner = '';
+    if(item.images && item.images.length){
+      mediaInner = `<img src="${item.images[0]}" alt="${item.title}">`;
+    }else if(item.videos && item.videos.length){
+      mediaInner = `<video src="${item.videos[0].src}" muted loop playsinline></video>`;
+    }
+    return `
+      <div class="entry ${isOpen?'open':''}" data-id="${item.id}">
+        <div class="entry-head">
+          <span class="entry-title">${item.title}</span>
+          <span class="entry-cat">${item.category}</span>
+        </div>
+        <div class="entry-desc">${item.desc}</div>
+        <div class="prompt-box">
+          <button class="copy-btn" title="Copy prompt">${copySvg()}</button>
+          <span class="copy-toast">Copied</span>
+          <pre class="prompt-text">${item.prompt}</pre>
+        </div>
+        <div class="media-toggle ${isOpen?'open':''}"><span class="arrow">▶</span><span class="toggle-label">${isOpen?'Hide':'Show'} media</span></div>
+        <div class="media-panel ${isOpen?'open':''}">${mediaInner}</div>
+        <div class="action-row">
+          <div class="action-item edit">${editSvg()}<span>Edit</span></div>
+          <div class="action-item delete">${trashSvg()}<span>Delete</span></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  wrap.querySelectorAll('.entry').forEach(entryEl=>{
+    const item = items.find(i=>i.id===entryEl.dataset.id);
+
+    entryEl.querySelector('.copy-btn').addEventListener('click', ()=>{
+      navigator.clipboard.writeText(item.prompt).then(()=>{
+        const toast = entryEl.querySelector('.copy-toast');
+        toast.classList.add('show');
+        setTimeout(()=>toast.classList.remove('show'), 1200);
+      });
+    });
+
+    entryEl.querySelector('.media-toggle').addEventListener('click', ()=>{
+      if(expanded.has(item.id)) expanded.delete(item.id); else expanded.add(item.id);
+      renderList();
+    });
+
+    const video = entryEl.querySelector('.media-panel video');
+    if(video){
+      const play = ()=>{ video.currentTime=0; video.play(); };
+      const pause = ()=>{ video.pause(); };
+      video.parentElement.addEventListener('mouseenter', play);
+      video.parentElement.addEventListener('mouseleave', pause);
+      video.parentElement.addEventListener('click', ()=>{ video.paused ? play() : pause(); });
+    }
+
+    entryEl.querySelector('.action-item.edit').addEventListener('click', ()=>{
+      openModal(item);
+    });
+
+    entryEl.querySelector('.action-item.delete').addEventListener('click', async ()=>{
+      if(!gh.configured){
+        alert('First set up your GitHub connection (⚙ icon top right).');
+        return;
+      }
+      if(!confirm(`Delete "${item.title}"? This action cannot be undone.`)) return;
+      try{
+        const { items: allItems, sha } = await getPromptsFile();
+        const filtered = allItems.filter(i => i.id !== item.id);
+        await savePromptsFile(filtered, sha);
+        DATA.images = filtered.filter(i=>i.type==='images');
+        DATA.videos = filtered.filter(i=>i.type==='videos');
+        renderCategoryBar();
+        renderHeader();
+        renderList();
+
+        const mediaUrls = [...(item.images||[]), ...(item.videos||[]).map(v=>v.src)];
+        for(const url of mediaUrls){ await deleteFileFromGitHub(url); }
+      }catch(e){
+        alert(`Could not delete from GitHub: ${e.detail || e.message}`);
+      }
+    });
+  });
+}
+
+/* ---- bottom nav: 2 sections ---- */
+document.querySelectorAll('.nav-col').forEach(col=>{
+  col.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-col').forEach(c=>c.classList.remove('active'));
+    col.classList.add('active');
+    activeSection = col.dataset.section;
+    activeCategory = 'all';
+    expanded.clear();
+    renderCategoryBar();
+    renderHeader();
+    renderList();
+  });
+});
+
+/* ---- category scroller: mouse drag-to-scroll (touch works natively) ---- */
+const catScrollerEl = document.getElementById('catScroller');
+let isDown = false, startX, scrollLeftStart;
+catScrollerEl.addEventListener('mousedown', (e)=>{
+  isDown = true;
+  catScrollerEl.classList.add('dragging');
+  startX = e.pageX - catScrollerEl.offsetLeft;
+  scrollLeftStart = catScrollerEl.scrollLeft;
+});
+window.addEventListener('mouseup', ()=>{ isDown = false; catScrollerEl.classList.remove('dragging'); });
+catScrollerEl.addEventListener('mouseleave', ()=>{ isDown = false; catScrollerEl.classList.remove('dragging'); });
+catScrollerEl.addEventListener('mousemove', (e)=>{
+  if(!isDown) return;
+  e.preventDefault();
+  const x = e.pageX - catScrollerEl.offsetLeft;
+  catScrollerEl.scrollLeft = scrollLeftStart - (x - startX) * 1.2;
+});
+
+/* ---- splash -> app ---- */
+document.getElementById('accessBtn').addEventListener('click', ()=>{
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+});
+
+/* ================= GITHUB INTEGRATION ================= */
+const GH_CONFIG_KEY = 'promptlab_gh_config';
+let gh = { owner:'', repo:'', token:'', configured:false };
+
+function loadGhConfig(){
+  try{
+    const raw = localStorage.getItem(GH_CONFIG_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      gh.owner = parsed.owner || '';
+      gh.repo = parsed.repo || '';
+      gh.token = parsed.token || '';
+    }
+  }catch(e){ /* ignore */ }
+  gh.configured = !!(gh.owner && gh.repo && gh.token);
+}
+
+function saveGhConfig(){
+  localStorage.setItem(GH_CONFIG_KEY, JSON.stringify({owner:gh.owner, repo:gh.repo, token:gh.token}));
+  gh.configured = !!(gh.owner && gh.repo && gh.token);
+}
+
+function showBanner(kind, html){
+  const el = document.getElementById('statusBanner');
+  el.className = 'status-banner show ' + kind;
+  el.innerHTML = html;
+}
+function hideBanner(){
+  const el = document.getElementById('statusBanner');
+  el.className = 'status-banner';
+  el.innerHTML = '';
+}
+
+async function ghRequest(path, options={}){
+  const res = await fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/${path}`, {
+    ...options,
+    headers:{
+      'Authorization': `Bearer ${gh.token}`,
+      'Accept': 'application/vnd.github+json',
+      ...(options.headers||{})
+    }
+  });
+  if(!res.ok){
+    const err = new Error(`GitHub API error ${res.status}`);
+    err.status = res.status;
+    try{ err.detail = (await res.json()).message; }catch(e){}
+    throw err;
+  }
+  return res.json();
+}
+
+function fileToBase64(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function utf8ToB64(str){
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function b64ToUtf8(str){
+  return decodeURIComponent(escape(atob(str.replace(/\n/g,''))));
+}
+
+async function uploadFileToGitHub(file, folder){
+  const b64 = await fileToBase64(file);
+  const safeName = Date.now() + '-' + Math.random().toString(36).slice(2,7) + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
+  const path = `media/${folder}/${safeName}`;
+  const res = await ghRequest(`contents/${encodeURI(path)}`, {
+    method:'PUT',
+    body: JSON.stringify({ message:`Add ${safeName}`, content: b64 })
+  });
+  return res.content.download_url;
+}
+
+async function deleteFileFromGitHub(url){
+  try{
+    const marker = `https://raw.githubusercontent.com/${gh.owner}/${gh.repo}/`;
+    if(!url || !url.startsWith(marker)) return;
+    const rest = url.slice(marker.length);
+    const path = rest.split('/').slice(1).join('/');
+    if(!path) return;
+    const info = await ghRequest(`contents/${encodeURI(path)}`);
+    await ghRequest(`contents/${encodeURI(path)}`, {
+      method:'DELETE',
+      body: JSON.stringify({ message:`Delete ${path}`, sha: info.sha })
+    });
+  }catch(e){
+    console.warn('Could not delete media file from GitHub:', url, e);
+  }
+}
+
+async function getPromptsFile(){
+  try{
+    const res = await ghRequest('contents/data/prompts.json');
+    const text = b64ToUtf8(res.content);
+    return { items: JSON.parse(text || '[]'), sha: res.sha };
+  }catch(e){
+    if(e.status === 404) return { items: [], sha: null };
+    throw e;
+  }
+}
+
+async function savePromptsFile(items, sha){
+  const body = { message:'Update prompts.json', content: utf8ToB64(JSON.stringify(items, null, 2)) };
+  if(sha) body.sha = sha;
+  return ghRequest('contents/data/prompts.json', { method:'PUT', body: JSON.stringify(body) });
+}
+
+async function loadPromptsFromGitHub(){
+  if(!gh.configured){
+    hideBanner();
+    renderCategoryBar();
+    renderHeader();
+    renderList();
+    return;
+  }
+  showBanner('loading', 'Loading prompts from GitHub…');
+  try{
+    const { items } = await getPromptsFile();
+    DATA.images = items.filter(i=>i.type==='images');
+    DATA.videos = items.filter(i=>i.type==='videos');
+    hideBanner();
+  }catch(e){
+    showBanner('error', `Could not load <code>data/prompts.json</code> from GitHub (${e.detail || e.message}). Check the username, repository, and token in the settings. <br><button id="retryLoadBtn">Retry</button>`);
+    document.getElementById('retryLoadBtn').addEventListener('click', loadPromptsFromGitHub);
+  }
+  renderCategoryBar();
+  renderHeader();
+  renderList();
+}
+
+/* ---- Settings modal wiring ---- */
+const settingsOverlay = document.getElementById('settingsOverlay');
+const settingsClose = document.getElementById('settingsClose');
+const settingsSave = document.getElementById('settingsSave');
+const settingsIco = document.getElementById('settingsIco');
+
+function openSettings(){
+  document.getElementById('ghOwner').value = gh.owner;
+  document.getElementById('ghRepo').value = gh.repo;
+  document.getElementById('ghToken').value = gh.token;
+  settingsOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSettings(){
+  settingsOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+settingsIco.addEventListener('click', openSettings);
+settingsClose.addEventListener('click', closeSettings);
+settingsOverlay.addEventListener('click', (e)=>{ if(e.target===settingsOverlay) closeSettings(); });
+
+settingsSave.addEventListener('click', async ()=>{
+  gh.owner = document.getElementById('ghOwner').value.trim();
+  gh.repo = document.getElementById('ghRepo').value.trim();
+  gh.token = document.getElementById('ghToken').value.trim();
+  saveGhConfig();
+  closeSettings();
+  await loadPromptsFromGitHub();
+});
+
+/* ================= NEW / EDIT PROMPT MODAL ================= */
+const SUBCATS = {
+  images: ['Background','Clothing','Framing','Formats','Pose','Other'],
+  videos: ['Movement','Transition','Lighting','Other']
+};
+
+let modalType = 'images';
+let pendingImages = []; // {file?, url, isNew}
+let pendingVideos = []; // {file?, url, isNew, label?}
+let editingId = null;
+let removedMediaUrls = [];
+
+const overlay = document.getElementById('modalOverlay');
+const fabBtn = document.getElementById('fabBtn');
+const modalClose = document.getElementById('modalClose');
+const modalSave = document.getElementById('modalSave');
+const subcatSelect = document.getElementById('mSubcatSelect');
+const subcatCustom = document.getElementById('mSubcatCustom');
+const subcatRow = document.getElementById('subcatRow');
+
+function getSubcatOptions(type){
+  const dynamic = (DATA[type] || []).map(i => i.category).filter(Boolean);
+  const merged = new Set([...SUBCATS[type].filter(c => c !== 'Other'), ...dynamic]);
+  const options = [...merged].sort((a,b) => a.localeCompare(b));
+  options.push('Other'); // always last, so it stays the entry point for typing a brand-new category
+  return options;
+}
+
+function renderSubcatOptions(){
+  subcatSelect.innerHTML = getSubcatOptions(modalType).map(c=>`<option value="${c}">${c}</option>`).join('');
+  subcatRow.classList.remove('custom');
+}
+subcatSelect.addEventListener('change', ()=>{
+  if(subcatSelect.value === 'Other'){
+    subcatRow.classList.add('custom');
+    subcatCustom.value = '';
+    subcatCustom.focus();
+  }
+});
+
+document.querySelectorAll('.type-pill').forEach(pill=>{
+  pill.addEventListener('click', ()=>{
+    document.querySelectorAll('.type-pill').forEach(p=>p.classList.remove('selected'));
+    pill.classList.add('selected');
+    modalType = pill.dataset.type;
+    renderSubcatOptions();
+  });
+});
+
+function openModal(item=null){
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  editingId = item ? item.id : null;
+  modalType = item ? item.type : 'images';
+
+  document.getElementById('modalTitleText').textContent = item ? 'Edit prompt' : 'New prompt';
+  document.querySelectorAll('.type-pill').forEach(p=>p.classList.toggle('selected', p.dataset.type===modalType));
+  renderSubcatOptions();
+
+  document.getElementById('mTitle').value = item ? item.title : '';
+  document.getElementById('mDesc').value = item ? item.desc : '';
+  document.getElementById('mPrompt').value = item ? item.prompt : '';
+
+  if(item && !getSubcatOptions(modalType).includes(item.category)){
+    subcatRow.classList.add('custom');
+    subcatCustom.value = item.category;
+  }else{
+    subcatRow.classList.remove('custom');
+    subcatCustom.value = '';
+    if(item) subcatSelect.value = item.category;
+  }
+
+  pendingImages = item ? (item.images||[]).map(u => ({ url:u, isNew:false })) : [];
+  pendingVideos = item ? (item.videos||[]).map(v => ({ url:v.src, isNew:false, label:v.label })) : [];
+  removedMediaUrls = [];
+  renderAttachGrid('images');
+  renderAttachGrid('videos');
+}
+function closeModal(){
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+fabBtn.addEventListener('click', ()=> openModal());
+modalClose.addEventListener('click', closeModal);
+// Clicking outside the modal does not close it — only the ✕ or Save button do.
+
+function renderAttachGrid(kind){
+  const grid = document.getElementById(kind==='images' ? 'imgAttachGrid' : 'vidAttachGrid');
+  const list = kind==='images' ? pendingImages : pendingVideos;
+  grid.innerHTML = list.map((f,i)=>`
+    <div class="attach-thumb">
+      ${kind==='images' ? `<img src="${f.url}">` : `<video src="${f.url}" muted></video>`}
+      <div class="rm" data-kind="${kind}" data-idx="${i}">✕</div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.rm').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const k = btn.dataset.kind, idx = +btn.dataset.idx;
+      const arr = k==='images' ? pendingImages : pendingVideos;
+      const removed = arr[idx];
+      if(removed && removed.isNew === false) removedMediaUrls.push(removed.url);
+      arr.splice(idx,1);
+      renderAttachGrid(k);
+    });
+  });
+}
+
+document.getElementById('mImages').addEventListener('change', (e)=>{
+  Array.from(e.target.files).forEach(file=>{
+    pendingImages.push({file, isNew:true, url:URL.createObjectURL(file)});
+  });
+  renderAttachGrid('images');
+  e.target.value = '';
+});
+document.getElementById('mVideos').addEventListener('change', (e)=>{
+  Array.from(e.target.files).forEach(file=>{
+    pendingVideos.push({file, isNew:true, url:URL.createObjectURL(file)});
+  });
+  renderAttachGrid('videos');
+  e.target.value = '';
+});
+
+modalSave.addEventListener('click', async ()=>{
+  if(!gh.configured){
+    alert('First set up your GitHub connection (⚙ icon top right).');
+    return;
+  }
+
+  const title = document.getElementById('mTitle').value.trim();
+  const desc = document.getElementById('mDesc').value.trim();
+  const prompt = document.getElementById('mPrompt').value.trim();
+  const category = subcatRow.classList.contains('custom')
+    ? (subcatCustom.value.trim() || 'Other')
+    : subcatSelect.value;
+
+  if(!title || !prompt){
+    alert('Title and prompt are required.');
+    return;
+  }
+
+  modalSave.disabled = true;
+  const originalLabel = modalSave.textContent;
+  modalSave.textContent = 'Uploading…';
+
+  try{
+    const uploadedImages = [];
+    for(const f of pendingImages){
+      uploadedImages.push(f.isNew ? await uploadFileToGitHub(f.file, 'images') : f.url);
+    }
+    const uploadedVideos = [];
+    for(const f of pendingVideos){
+      uploadedVideos.push(f.isNew ? await uploadFileToGitHub(f.file, 'videos') : f.url);
+    }
+
+    modalSave.textContent = 'Saving…';
+    const { items, sha } = await getPromptsFile();
+
+    const savedItem = {
+      id: editingId || ('p_' + Date.now()),
+      type: modalType,
+      category,
+      title,
+      desc: desc || 'No description.',
+      prompt,
+      images: uploadedImages,
+      videos: uploadedVideos.map((src,i)=>({label:`clip ${i+1}`, src}))
+    };
+
+    if(editingId){
+      const idx = items.findIndex(i => i.id === editingId);
+      if(idx >= 0) items[idx] = savedItem; else items.unshift(savedItem);
+    }else{
+      items.unshift(savedItem);
+    }
+
+    await savePromptsFile(items, sha);
+
+    DATA.images = items.filter(i=>i.type==='images');
+    DATA.videos = items.filter(i=>i.type==='videos');
+    closeModal();
+
+    document.querySelectorAll('.nav-col').forEach(c=>c.classList.toggle('active', c.dataset.section===modalType));
+    activeSection = modalType;
+    activeCategory = 'all';
+    renderCategoryBar();
+    renderHeader();
+    renderList();
+
+    for(const url of removedMediaUrls){ await deleteFileFromGitHub(url); }
+    removedMediaUrls = [];
+  }catch(e){
+    alert(`Could not save to GitHub: ${e.detail || e.message}. Check your token (Contents: Read and write permission) and that it hasn't expired.`);
+  }finally{
+    modalSave.disabled = false;
+    modalSave.textContent = originalLabel;
+  }
+});
+
+loadGhConfig();
+loadPromptsFromGitHub();
+</script>
+
+</body>
+</html>
