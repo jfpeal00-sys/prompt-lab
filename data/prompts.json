@@ -1,5 +1,15 @@
 [
   {
+    "id": "p_1785544824920",
+    "type": "images",
+    "category": "Body",
+    "title": "CHANGE EYE COLOR ONLY",
+    "desc": "CHANGE EYE COLOR ONLY",
+    "prompt": "CHANGE EYE COLOR ONLY\n\n## IMAGE ASSIGNMENT\n\nImage 1 (Primary Image): The image to be edited.\n[ ]\n\nImage 2 (Reference Image): The image used only as the eye color reference.\n[ ]\n\n---\n\n# OBJECTIVE\n\nModify only Image 1.\n\nUse Image 2 exclusively as the reference for the iris color.\n\nReplace the iris color in Image 1 with the iris color shown in Image 2 while preserving the subject's natural appearance.\n\nReplicate as accurately as possible:\n\n• Iris color.\n• Color distribution.\n• Color transitions.\n• Outer limbal ring.\n• Inner color variations.\n• Brightness.\n• Saturation.\n• Natural reflections within the iris.\n\n---\n\n# PRESERVE\n\nKeep everything else from Image 1 unchanged, including:\n\n• Identity.\n• Eye shape.\n• Eye size.\n• Eye spacing.\n• Eyelids.\n• Eyelashes.\n• Eyebrows.\n• Pupils.\n• Eye direction.\n• Facial expression.\n• Face.\n• Hairstyle.\n• Clothing.\n• Accessories.\n• Background.\n• Lighting.\n• Perspective.\n• Overall photographic quality.\n\n---\n\n# REFERENCE USAGE\n\nUse Image 2 only as the iris color reference.\n\nDo not copy:\n\n• Eye shape.\n• Eye size.\n• Facial features.\n• Identity.\n• Hairstyle.\n• Makeup.\n• Clothing.\n• Background.\n• Lighting.\n\n---\n\n# FINAL OBJECTIVE\n\nThe final image should appear as a real photograph of the woman from Image 1 with the same iris color as the woman in Image 2.\n\nThe only visible modification should be the iris color.",
+    "images": [],
+    "videos": []
+  },
+  {
     "id": "p_1785544715249",
     "type": "images",
     "category": "Clothing",
